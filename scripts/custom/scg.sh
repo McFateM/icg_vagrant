@@ -10,14 +10,14 @@
 # after https://github.com/Islandora-Labs/islandora_vagrant/blob/master/scripts/islandora_modules.sh.
 # Several parts of the original script remain here (commented out) for reference.
 #
-# Usage: To generate Islandora objects (content) define and export an
-#   ISLANDORA_VAGRANT_GENERATE_CONTENT variable in the host's ../configs/custom_variables
-#   script and set its value != FALSE.
+# Usage: This script will automatically generate Islandora objects (content) if there are NONE or if
+#   if ISLANDORA_VAGRANT_FORCE_CONTENT variable in the host's ../configs/custom_variables is defined.
 #   Example:
-#     export ISLANDORA_VAGRANT_GENERATE_CONTENT=TRUE
-#   Set ISLANDORA_VAGRANT_GENERATE_CONTENT to FALSE or NULL in order to disable content generation.
+#     export ISLANDORA_VAGRANT_FORCE_CONTENT=TRUE
+#   Set ISLANDORA_VAGRANT_FORCE_CONTENT to "" (null) in order to disable content generation.
 #
 # Changes:
+# 28-Mar-2016 - Added check for existing content and the ISLANDORA_VAGRANT_FORCE_CONTENT variable.
 # 24-Mar-2016 - Added Mark Jordan's islandora_scg (Sample Content Generator) module with
 #   representative content.
 #
@@ -55,8 +55,15 @@ cd "$DRUPAL_HOME"/sites/all/modules || exit
 # Set variables for Islandora modules
 #drush eval "variable_set('islandora_audio_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
 
-# Adding in Peter's SCG drush commands to create the content...
-if [[ -n $ISLANDORA_VAGRANT_GENERATE_CONTENT ]] && [[ $ISLANDORA_VAGRANT_GENERATE_CONTENT != "FALSE" ]]; then
+# Now, execute a Solr query to return a response for all PID:* values (basically counts all the
+# Fedora objects, pass the result to sed and output only the numFound attribute of the response.
+numFound=$(curl -s "http://localhost:8080/solr/collection1/select?q=PID:*&rows=0&wt=xml" | sed -n 's/.*numFound="\([^"]*\).*/\1/p')
+
+echo "There are $numFound objects already in Fedora."
+
+# Adding in Peter's SCG drush commands to create the content IF fewer than 20 objects already exists, or
+# if the ISLANDORA_VAGRANT_FORCE CONTENT variable is set.
+if [[ $numFound < 20 || $ISLANDORA_VAGRANT_FORCE_CONTENT ]]; then
   cd "$DRUPAL_HOME"/sites/all/modules/islandora_scg || exit
   echo "Generating content using the islandora_scg module."
   drush -u 1 iscgl --user=admin --quantity=2 --content_model=islandora:collectionCModel --parent=islandora:root --namespace=icg-collection
@@ -67,6 +74,8 @@ if [[ -n $ISLANDORA_VAGRANT_GENERATE_CONTENT ]] && [[ $ISLANDORA_VAGRANT_GENERAT
   drush -u 1 iscgl --user=admin --quantity=2 --content_model=islandora:newspaperCModel --parent=islandora:newspaper_collection --namespace=icg-newspaper2
   drush -u 1 iscgl --user=admin --quantity=2 --content_model=islandora:newspaperPageCModel --parent=icg-newspaper2:1 --namespace=icg-newspaper-page
   drush -u 1 iscgl --user=admin --quantity=2 --content_model=islandora:newspaperPageCModel --parent=icg-newspaper2:2 --namespace=icg-newspaper-page
+else
+  echo "No additional content was generated."
 fi
 
 # Permissions and ownership
