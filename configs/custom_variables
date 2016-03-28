@@ -2,4 +2,4 @@
 
 export ISLANDORA_VAGRANT_THEME="bootstrap"
 # export ISLANDORA_VAGRANT_THEME="https://github.com/DigitalGrinnell/Digital_Grinnell_Theme"
-export ISLANDORA_VAGRANT_FORCE_CONTENT="TRUE"
+# export ISLANDORA_VAGRANT_FORCE_CONTENT="TRUE"
