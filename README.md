@@ -6,6 +6,17 @@ The is a development environment virtual machine for Islandora 7.x-1.x. It shoul
 
 N.B. This virtual machine **should not** be used in production.
 
+## Customizations (EXTENSIONS)
+
+This is a customized fork of the https://github.com/Islandora-Labs/islandora_vagrant project.  A ./scripts/custom.sh bash script (a feature supported by the original project) has been added along with the addition of a ./scripts/custom directory and a ./configs/custom_variables bash script.  The original project has NOT been modified in any way, it has only been EXTENDED.
+ 
+The project was initially extended by adding an scg.sh (Sample Content Generator) and a theme.sh (allows a Drupal theme to be applied to the VM) script to the ./scripts/custom directory, along with introduction of supporting variables in ./configs/custom_variables. 
+
+Additional extensions to the project can be introduced by adding a bash script (patterned after either scg.sh or theme.sh) to ./scripts/custom along with additional variables, if needed, in ./configs/custom_variables.  Any/all '*.sh' named scripts found in ./scripts/custom will be invoked by custom.sh after the original islandora_libraries.sh and islandora_modules.sh scripts have run, and immediately before the original post.sh script runs.
+
+Additions to the project should be independent and idempotent (producing the same results if run more than once) whenever possible since the order of execution of scripts in ./scripts/custom may be unpredictable.
+
+The remainder of this document is identical to README.md from the https://github.com/Islandora-Labs/islandora_vagrant project.
 
 ## Requirements
 
